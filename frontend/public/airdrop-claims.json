@@ -1,0 +1,13 @@
+{
+  "claims": [
+    {
+      "claimant": "5Q28Tm9NXGAh9s2zGRssvRPDRUGccB1JQRWnFSeaZwrU",
+      "mint": "5Jury3ond1MzcJ6ioYcPwNFwiyyNp8Sfo611XEWjRZq8",
+      "epoch": 1,
+      "amount": "1000000",
+      "proof": [],
+      "name": "testcat",
+      "symbol": "TCAT"
+    }
+  ]
+}

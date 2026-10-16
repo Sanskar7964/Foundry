@@ -1,0 +1,1797 @@
+{
+  "address": "HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn",
+  "metadata": {
+    "name": "launchpad_core",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "buy",
+      "docs": [
+        "Buy tokens off the curve with SOL. Applies TRADE_FEE_BPS; 25% of that",
+        "fee is routed via CPI into the staking reward vault for LAUNCHPAD",
+        "holders, the rest stays in the curve's treasury for LP bootstrap."
+      ],
+      "discriminator": [
+        102,
+        6,
+        61,
+        18,
+        1,
+        218,
+        235,
+        234
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "curve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_treasury",
+          "docs": [
+            "PDA system account that holds the curve's SOL treasury; owned by this program"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_token_vault",
+          "writable": true
+        },
+        {
+          "name": "buyer_token_account",
+          "writable": true
+        },
+        {
+          "name": "reward_vault_pool",
+          "writable": true
+        },
+        {
+          "name": "reward_vault_sol",
+          "writable": true
+        },
+        {
+          "name": "reward_vault_program",
+          "address": "3xUJqsjCQBfvUhEvz5cd16SSAwLdQUFGijoh3X5pLYPZ"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "sol_in",
+          "type": "u64"
+        },
+        {
+          "name": "min_tokens_out",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_launch",
+      "docs": [
+        "Creates a new memecoin with a bonding curve. `airdrop_bps` (100-500) of",
+        "total supply is set aside in a program-controlled reserve that can",
+        "later be distributed to holders by the merkle-distributor program,",
+        "snapshot-by-snapshot, off-chain-computed / on-chain-verified."
+      ],
+      "discriminator": [
+        239,
+        223,
+        255,
+        134,
+        39,
+        121,
+        127,
+        62
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "curve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "metadata",
+          "docs": [
+            "Display data is separate from Curve so old Curve accounts stay valid."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_authority",
+          "docs": [
+            "PDA that holds mint authority for this launch"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "airdrop_authority",
+          "docs": [
+            "PDA that exclusively controls the holder-airdrop reserve."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  105,
+                  114,
+                  100,
+                  114,
+                  111,
+                  112,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_treasury",
+          "docs": [
+            "ownership; the Trade context subsequently enforces SystemAccount.",
+            "Initializing it prevents a first small buy leaving it below rent-exempt."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "curve_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "airdrop_vault",
+          "docs": [
+            "Dedicated holder-airdrop reserve. Its distinct PDA owner prevents an",
+            "ATA collision with `curve_token_vault` and prevents creator withdrawal."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "airdrop_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        },
+        {
+          "name": "airdrop_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "fund_distributor",
+      "docs": [
+        "Funds an already-created Merkle claim epoch from the launch's immutable",
+        "airdrop reserve. Only the launch creator may select an epoch to fund,",
+        "but the transfer itself is signed exclusively by the airdrop PDA."
+      ],
+      "discriminator": [
+        223,
+        255,
+        163,
+        89,
+        36,
+        250,
+        65,
+        156
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "curve",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "airdrop_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  105,
+                  114,
+                  100,
+                  114,
+                  111,
+                  112,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "airdrop_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "airdrop_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "distributor"
+        },
+        {
+          "name": "epoch_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "distributor"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_curve_treasury",
+      "docs": [
+        "Creates the rent-exempt system account that holds a launch's SOL",
+        "reserves. This is retained as a permissionless one-time initializer so",
+        "launches made before the treasury was initialized in `create_launch`",
+        "can be repaired without changing any curve state."
+      ],
+      "discriminator": [
+        139,
+        153,
+        1,
+        167,
+        86,
+        72,
+        14,
+        217
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "curve",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_treasury",
+          "docs": [
+            "ownership; it is validated as a SystemAccount when used for trading."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mark_migrated",
+      "docs": [
+        "Atomically migrates a completed bonding curve to a Raydium CPMM pool:",
+        "1. Validate curve state (ready and not migrated).",
+        "2. Transfer treasury SOL into the curve_authority WSOL ATA + sync_native.",
+        "3. Sort the token pair (token-0 < token-1 by pubkey) per Raydium invariant.",
+        "4. CPI to Raydium CPMM `initialize` with curve_authority as \"creator\".",
+        "5. Burn all received LP tokens (no LP remains in anyone's hands).",
+        "6. Mark curve.migrated = true and emit event.",
+        "`pool_funding` is a temporary budget for Raydium's create-pool fee and",
+        "account rent. It comes from the curve treasury's accumulated fee share,",
+        "never from the caller. Any unused amount returns to that treasury."
+      ],
+      "discriminator": [
+        39,
+        81,
+        81,
+        220,
+        75,
+        250,
+        189,
+        216
+      ],
+      "accounts": [
+        {
+          "name": "curve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Any wallet may trigger a ready migration. It only pays the transaction",
+            "fee and, if absent, the curve-authority WSOL ATA rent; pool setup itself",
+            "is funded by the curve treasury."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "curve_authority",
+          "docs": [
+            "PDA that is the \"creator\" from Raydium's perspective — signs the CPI"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_treasury",
+          "docs": [
+            "Holds the curve's accumulated SOL treasury (will be drained to WSOL)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_token_vault",
+          "docs": [
+            "curve_authority's ATA for the memecoin — source of token liquidity"
+          ],
+          "writable": true
+        },
+        {
+          "name": "memecoin_mint",
+          "docs": [
+            "The memecoin mint"
+          ]
+        },
+        {
+          "name": "wsol_mint",
+          "docs": [
+            "WSOL mint (always So11111111111111111111111111111111111111112)"
+          ],
+          "address": "So11111111111111111111111111111111111111112"
+        },
+        {
+          "name": "curve_authority_wsol",
+          "docs": [
+            "curve_authority's WSOL ATA — created here if needed; receives wrapped SOL"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "curve_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "wsol_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "amm_config"
+        },
+        {
+          "name": "raydium_authority",
+          "writable": true
+        },
+        {
+          "name": "pool_state",
+          "writable": true
+        },
+        {
+          "name": "lp_mint",
+          "writable": true
+        },
+        {
+          "name": "creator_lp_token",
+          "writable": true
+        },
+        {
+          "name": "token_0_vault",
+          "writable": true
+        },
+        {
+          "name": "token_1_vault",
+          "writable": true
+        },
+        {
+          "name": "create_pool_fee",
+          "writable": true
+        },
+        {
+          "name": "observation_state",
+          "writable": true
+        },
+        {
+          "name": "raydium_cpmm_program"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "pool_funding",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "sell",
+      "docs": [
+        "Sell tokens back into the curve for SOL. Same fee split as buy."
+      ],
+      "discriminator": [
+        51,
+        230,
+        133,
+        164,
+        1,
+        127,
+        131,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "curve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  114,
+                  118,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_treasury",
+          "docs": [
+            "PDA system account that holds the curve's SOL treasury; owned by this program"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "curve_token_vault",
+          "writable": true
+        },
+        {
+          "name": "buyer_token_account",
+          "writable": true
+        },
+        {
+          "name": "reward_vault_pool",
+          "writable": true
+        },
+        {
+          "name": "reward_vault_sol",
+          "writable": true
+        },
+        {
+          "name": "reward_vault_program",
+          "address": "3xUJqsjCQBfvUhEvz5cd16SSAwLdQUFGijoh3X5pLYPZ"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "tokens_in",
+          "type": "u64"
+        },
+        {
+          "name": "min_sol_out",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_launch_metadata",
+      "docs": [
+        "Stores the display metadata separately from the Curve account.  Keeping",
+        "this in its own PDA means existing Curve accounts remain byte-for-byte",
+        "compatible and creators can backfill launches made before metadata was",
+        "persisted."
+      ],
+      "discriminator": [
+        76,
+        114,
+        69,
+        180,
+        101,
+        207,
+        131,
+        50
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "curve"
+          ]
+        },
+        {
+          "name": "curve"
+        },
+        {
+          "name": "metadata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "curve.mint",
+                "account": "Curve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Curve",
+      "discriminator": [
+        191,
+        180,
+        249,
+        66,
+        180,
+        71,
+        51,
+        182
+      ]
+    },
+    {
+      "name": "Distributor",
+      "discriminator": [
+        90,
+        90,
+        217,
+        147,
+        6,
+        32,
+        135,
+        4
+      ]
+    },
+    {
+      "name": "LaunchMetadata",
+      "discriminator": [
+        12,
+        168,
+        24,
+        94,
+        84,
+        255,
+        226,
+        37
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "CurveMigrated",
+      "discriminator": [
+        73,
+        99,
+        54,
+        46,
+        71,
+        35,
+        47,
+        242
+      ]
+    },
+    {
+      "name": "LaunchCreated",
+      "discriminator": [
+        59,
+        38,
+        190,
+        230,
+        33,
+        34,
+        89,
+        20
+      ]
+    },
+    {
+      "name": "TradeExecuted",
+      "discriminator": [
+        41,
+        110,
+        64,
+        129,
+        60,
+        79,
+        179,
+        80
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAirdropBps",
+      "msg": "airdrop_bps must be between 100 (1%) and 500 (5%)"
+    },
+    {
+      "code": 6001,
+      "name": "MetadataTooLong",
+      "msg": "name/symbol/uri exceeds max length"
+    },
+    {
+      "code": 6002,
+      "name": "ZeroAmount",
+      "msg": "amount must be greater than zero"
+    },
+    {
+      "code": 6003,
+      "name": "SlippageExceeded",
+      "msg": "slippage tolerance exceeded"
+    },
+    {
+      "code": 6004,
+      "name": "InsufficientLiquidity",
+      "msg": "not enough liquidity on the curve"
+    },
+    {
+      "code": 6005,
+      "name": "AlreadyMigrated",
+      "msg": "curve has already migrated to an external AMM"
+    },
+    {
+      "code": 6006,
+      "name": "NotReadyToMigrate",
+      "msg": "curve has not reached the migration threshold yet"
+    },
+    {
+      "code": 6007,
+      "name": "Unauthorized",
+      "msg": "signer is not the curve authority"
+    },
+    {
+      "code": 6008,
+      "name": "MigrationFailed",
+      "msg": "raydium CPMM pool creation CPI failed"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidRaydiumProgram",
+      "msg": "invalid Raydium CPMM program ID"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidDistributor",
+      "msg": "distributor does not belong to this launch"
+    },
+    {
+      "code": 6011,
+      "name": "DistributorOverfunded",
+      "msg": "funding would exceed the distributor epoch allocation"
+    },
+    {
+      "code": 6012,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflow"
+    },
+    {
+      "code": 6013,
+      "name": "InsufficientMigrationFunding",
+      "msg": "curve treasury fee surplus cannot cover Raydium pool setup"
+    }
+  ],
+  "types": [
+    {
+      "name": "Curve",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "docs": [
+              "Legacy launch-authority field retained to preserve the live account layout.",
+              "Migration is permissionless."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "virtual_sol_reserves",
+            "type": "u64"
+          },
+          {
+            "name": "virtual_token_reserves",
+            "type": "u64"
+          },
+          {
+            "name": "real_sol_reserves",
+            "type": "u64"
+          },
+          {
+            "name": "real_token_reserves",
+            "type": "u64"
+          },
+          {
+            "name": "airdrop_bps",
+            "type": "u16"
+          },
+          {
+            "name": "migrated",
+            "type": "bool"
+          },
+          {
+            "name": "ready_to_migrate",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "curve_authority_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CurveMigrated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "real_sol_reserves",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Distributor",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch",
+            "type": "u64"
+          },
+          {
+            "name": "root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "claimed_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "airdrop_bps",
+            "type": "u16"
+          },
+          {
+            "name": "airdrop_amount",
+            "type": "u64"
+          },
+          {
+            "name": "sellable_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchMetadata",
+      "docs": [
+        "Human-readable launch information.  This is deliberately a separate PDA",
+        "instead of extending `Curve`, whose serialized layout is already live."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeExecuted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_buy",
+            "type": "bool"
+          },
+          {
+            "name": "sol_amount",
+            "type": "u64"
+          },
+          {
+            "name": "token_amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

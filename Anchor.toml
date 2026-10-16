@@ -1,0 +1,26 @@
+[toolchain]
+anchor_version = "0.31.1"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+
+reward_vault = "3xUJqsjCQBfvUhEvz5cd16SSAwLdQUFGijoh3X5pLYPZ"
+
+[programs.devnet]
+launchpad_core = "HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn"
+reward_vault = "3xUJqsjCQBfvUhEvz5cd16SSAwLdQUFGijoh3X5pLYPZ"
+merkle_distributor = "GtpFjU1NZM8NvE2UYfNxszmTL2SW2xU6z4318by8rYC7"
+
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

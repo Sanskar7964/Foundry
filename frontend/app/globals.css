@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #141216;
+  color: #F1EDE6;
+  min-height: 100%;
+}
+
+* {
+  border-color: #332E37;
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 18% -10%, rgba(217, 164, 65, 0.10), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(99, 47, 73, 0.12), transparent 26rem);
+}
+
+::selection {
+  background-color: #D9A441;
+  color: #141216;
+}
+
+/* thin, deliberate scrollbar to match the metal/foundry feel */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1C191E; }
+::-webkit-scrollbar-thumb { background: #332E37; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4a434f; }
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.page-shell {
+  position: relative;
+}
+
+.page-shell::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image: linear-gradient(rgba(241, 237, 230, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(241, 237, 230, 0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to bottom, black, transparent 48rem);
+}
+
+.content-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  color: #D9A441;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.70rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* override wallet-adapter's default purple theme to match the foundry palette */
+.wallet-adapter-modal-wrapper {
+  background: #1C191E !important;
+  border: 1px solid #332E37;
+}
+.wallet-adapter-modal-title {
+  color: #F1EDE6 !important;
+  font-family: var(--font-display), sans-serif;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: #26222A !important;
+  color: #F1EDE6 !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: #332E37 !important;
+}
+.wallet-adapter-button-trigger {
+  background: #D9A441 !important;
+}

@@ -1,0 +1,7 @@
+.anchor/test-ledger/
+.anchor/program-logs/
+node_modules/
+target/
+.env
+.env.*
+!.env.example
