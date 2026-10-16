@@ -13,7 +13,7 @@
   "devDependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@solana/spl-token": "^0.4.6",
-    "@solana/web3.js": "^1.91.8",
+    "@solana/web3.js": "1.95.5",
     "@sqds/multisig": "^2.1.4",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
@@ -26,5 +26,8 @@
   "dependencies": {
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.3.11"
+  },
+  "overrides": {
+    "rpc-websockets": "9.0.2"
   }
 }
