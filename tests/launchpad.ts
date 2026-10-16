@@ -1,5 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, BN } from "@coral-xyz/anchor";
+import { spawn } from "child_process";
 import {
   PublicKey,
   SystemProgram,
@@ -9,7 +10,9 @@ import {
 import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  NATIVE_MINT,
   getAssociatedTokenAddress,
+  getAssociatedTokenAddressSync,
   getAccount,
   getOrCreateAssociatedTokenAccount,
 } from "@solana/spl-token";
@@ -25,6 +28,19 @@ async function airdrop(provider: anchor.AnchorProvider, to: PublicKey, sol: numb
 
 function pdaOf(program: Program<any>, ...seeds: Buffer[]) {
   return PublicKey.findProgramAddressSync(seeds, program.programId);
+}
+
+// Raydium CPMM Devnet addresses. The Surfpool test forks Devnet so these
+// program/config accounts are available locally without spending Devnet SOL.
+const RAYDIUM_CPMM_DEVNET = new PublicKey("CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW");
+const RAYDIUM_AMM_CONFIG_DEVNET = new PublicKey("9zSzfkYy6awexsHvmggeH36pfVUdDGyCcwmjT3AQPBj6");
+const RAYDIUM_CREATE_POOL_FEE_DEVNET = new PublicKey("G11FKBRaAkHAKuLCgLM6K6NUc9rTjPAznRCjZifrTQe2");
+
+function raydiumPda(seed: string, ...parts: PublicKey[]): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(seed), ...parts.map((part) => part.toBuffer())],
+    RAYDIUM_CPMM_DEVNET,
+  )[0];
 }
 
 // ─── Suite ──────────────────────────────────────────────────────────────────
@@ -385,6 +401,74 @@ describe("memecoin-launchpad", () => {
       } catch (e: any) {
         assert.include(e.message, "SlippageExceeded");
       }
+    });
+
+    it("Surfpool: keeper automatically migrates a ready curve through Raydium", async function () {
+      // This test needs Surfpool's local Devnet fork for the Raydium CPMM
+      // program/config. It is deliberately opt-in so ordinary `anchor test`
+      // stays fully local and does not depend on an external program.
+      if (process.env.SURFPOOL_MIGRATION_TEST !== "true") this.skip();
+
+      const keeper = Keypair.generate();
+      await airdrop(provider, keeper.publicKey, 5);
+
+      const readyCurve = await launchpadCore.account.curve.fetch(curvePda);
+      assert.isTrue(readyCurve.readyToMigrate, "curve must have crossed the 85 SOL threshold");
+      assert.notEqual(
+        keeper.publicKey.toBase58(),
+        creator.publicKey.toBase58(),
+        "test caller must not be the launch creator",
+      );
+
+      const [token0Mint, token1Mint] = mint.publicKey.toBuffer().compare(NATIVE_MINT.toBuffer()) < 0
+        ? [mint.publicKey, NATIVE_MINT]
+        : [NATIVE_MINT, mint.publicKey];
+      const poolState = raydiumPda("pool", RAYDIUM_AMM_CONFIG_DEVNET, token0Mint, token1Mint);
+      const lpMint = raydiumPda("pool_lp_mint", poolState);
+      const creatorLpToken = getAssociatedTokenAddressSync(lpMint, curveAuthorityPda, true);
+
+      // Use the exact process Railway runs. It polls the local Surfpool RPC,
+      // discovers this ready curve by account layout, then invokes migrate.ts
+      // with this non-creator keeper's keypair.
+      const keeperProcess = spawn(
+        process.execPath,
+        ["node_modules/ts-node/dist/bin.js", "app/migration-keeper.ts"],
+        {
+          cwd: process.cwd(),
+          env: {
+            ...process.env,
+            MIGRATION_KEEPER_ENABLED: "true",
+            MIGRATION_KEEPER_POLL_MS: "100",
+            CLUSTER: "devnet",
+            SOLANA_RPC_URL: process.env.ANCHOR_PROVIDER_URL!,
+            SOLANA_KEEPER_SECRET_KEY: JSON.stringify(Array.from(keeper.secretKey)),
+            MIGRATION_KEEPER_MINT: mint.publicKey.toBase58(),
+          },
+          stdio: "inherit",
+        },
+      );
+
+      try {
+        const deadline = Date.now() + 20_000;
+        let migrated = false;
+        while (Date.now() < deadline) {
+          const currentCurve = await launchpadCore.account.curve.fetch(curvePda);
+          if (currentCurve.migrated) {
+            migrated = true;
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+        assert.isTrue(migrated, "keeper must migrate the curve within 20 seconds");
+      } finally {
+        keeperProcess.kill("SIGTERM");
+      }
+
+      const migratedCurve = await launchpadCore.account.curve.fetch(curvePda);
+      assert.isTrue(migratedCurve.migrated, "permissionless migration must mark the curve migrated");
+      assert.isNotNull(await provider.connection.getAccountInfo(poolState), "Raydium pool must exist");
+      const lpAccount = await getAccount(provider.connection, creatorLpToken);
+      assert.equal(lpAccount.amount.toString(), "0", "all LP tokens must be burned");
     });
   });
 

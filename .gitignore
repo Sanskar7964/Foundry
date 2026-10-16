@@ -1,7 +1,9 @@
 .anchor/test-ledger/
 .anchor/program-logs/
+.surfpool/
 node_modules/
 target/
+.surfpool-tests/
 .env
 .env.*
 !.env.example

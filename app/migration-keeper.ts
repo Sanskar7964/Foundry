@@ -12,6 +12,7 @@ import path from "path";
 const PROGRAM_ID = new PublicKey("HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn");
 const RPC_URL = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 const POLL_MS = Number(process.env.MIGRATION_KEEPER_POLL_MS ?? "15000");
+const ONLY_MINT = process.env.MIGRATION_KEEPER_MINT;
 
 function requireConfig() {
   if (process.env.MIGRATION_KEEPER_ENABLED !== "true") {
@@ -27,6 +28,7 @@ function requireConfig() {
   if (!Array.isArray(bytes) || bytes.length !== 64 || !bytes.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
     throw new Error("SOLANA_KEEPER_SECRET_KEY is not a valid 64-byte Solana keypair array.");
   }
+  if (ONLY_MINT) new PublicKey(ONLY_MINT);
   const keyPath = path.join(os.tmpdir(), "launchpad-migration-keeper.json");
   fs.writeFileSync(keyPath, JSON.stringify(bytes), { encoding: "utf8", mode: 0o600 });
   process.env.SOLANA_WALLET_PATH = keyPath;
@@ -39,7 +41,8 @@ async function readyMints(connection: Connection): Promise<string[]> {
     // u16 airdrop_bps, migrated byte, ready_to_migrate byte, two bump bytes.
     const data = account.data;
     if (data.length !== 142 || data[138] !== 0 || data[139] !== 1) return [];
-    return [new PublicKey(data.subarray(8, 40)).toBase58()];
+    const mint = new PublicKey(data.subarray(8, 40)).toBase58();
+    return !ONLY_MINT || mint === ONLY_MINT ? [mint] : [];
   });
 }
 
@@ -63,7 +66,7 @@ async function tick(connection: Connection) {
 async function main() {
   requireConfig();
   const connection = new Connection(RPC_URL, "confirmed");
-  console.log(`[keeper] Devnet migration keeper started; polling every ${POLL_MS}ms.`);
+  console.log(`[keeper] Devnet migration keeper started; polling every ${POLL_MS}ms${ONLY_MINT ? ` for ${ONLY_MINT}` : ""}.`);
   await tick(connection);
   setInterval(() => { tick(connection).catch((error) => console.error("[keeper] scan failed:", error)); }, POLL_MS);
 }

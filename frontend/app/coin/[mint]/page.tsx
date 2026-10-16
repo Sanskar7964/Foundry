@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BondingCurveChart } from "@/components/bonding-curve-chart";
 import { fetchLiveLaunch, LiveLaunch, migrationProgress } from "@/lib/anchor/launches";
-import { buyTokens, migrateLaunch, raydiumPoolForLaunch, sellTokens, setLaunchMetadata, LAUNCH_METADATA_ENABLED } from "@/lib/anchor/program";
+import { buyTokens, raydiumPoolForLaunch, sellTokens, setLaunchMetadata, LAUNCH_METADATA_ENABLED } from "@/lib/anchor/program";
 import { CLUSTER } from "@/lib/anchor/constants";
 import { swapMigratedLaunch } from "@/lib/raydium-swap";
 import { shortenAddress } from "@/lib/utils";
@@ -45,6 +45,17 @@ export default function CoinPage() {
     }
     return () => { active = false; };
   }, [connection, params.mint]);
+
+  // The keeper migrates eligible curves without a creator or holder action.
+  // Refresh while pending so the page switches to Raydium once it completes.
+  React.useEffect(() => {
+    if (!liveLaunch?.readyToMigrate || liveLaunch.migrated) return;
+    const mint = new PublicKey(params.mint);
+    const interval = window.setInterval(() => {
+      fetchLiveLaunch(connection, mint).then(setLiveLaunch).catch(() => undefined);
+    }, 5_000);
+    return () => window.clearInterval(interval);
+  }, [connection, params.mint, liveLaunch?.readyToMigrate, liveLaunch?.migrated]);
 
   if (loadError) {
     return <div className="content-wrap max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14 text-sm text-ember">{loadError}</div>;
@@ -100,24 +111,6 @@ export default function CoinPage() {
       setStatus(`${side === "buy" ? "Bought" : "Sold"} — check your wallet for the confirmation.`);
     } catch (err: any) {
       setStatus(err.message ?? "Trade failed.");
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function handleMigration() {
-    if (!wallet.connected || !wallet.publicKey || !liveLaunch) {
-      setStatus("Connect a wallet first.");
-      return;
-    }
-    setPending(true);
-    setStatus(null);
-    try {
-      const result = await migrateLaunch(connection, wallet, new PublicKey(launch.mint), setStatus);
-      setStatus(`Migration submitted: ${result.signature}`);
-      setLiveLaunch(await fetchLiveLaunch(connection, new PublicKey(launch.mint)));
-    } catch (err: any) {
-      setStatus(err.message ?? "Migration failed.");
     } finally {
       setPending(false);
     }
@@ -188,14 +181,11 @@ export default function CoinPage() {
 
       {liveLaunch.readyToMigrate && !liveLaunch.migrated && (
         <Card className="mb-6 border-brass/40">
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+          <CardContent className="py-4">
             <div>
-              <p className="font-medium text-ink">Ready to migrate to Raydium</p>
-              <p className="text-xs text-muted">Anyone can create the Devnet CPMM pool. Setup costs use the curve's accrued fee surplus; LP tokens are permanently locked.</p>
+              <p className="font-medium text-ink">Migrating to Raydium automatically</p>
+              <p className="text-xs text-muted">The network keeper is creating the CPMM pool from the curve's accrued fee surplus. This page refreshes automatically when Raydium trading is ready.</p>
             </div>
-            <Button disabled={pending || !wallet.connected} onClick={handleMigration}>
-              {pending ? "Confirmingâ€¦" : "Migrate to Raydium"}
-            </Button>
           </CardContent>
         </Card>
       )}
