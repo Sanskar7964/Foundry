@@ -137,7 +137,7 @@ Devnet rehearsal Squad (2-of-3, created October 12, 2026):
 | Item | Address |
 |---|---|
 | Multisig PDA | `C4WBJRjmLUJwUkFxD9CaBopspDpeFkeniRAK7Bt7ML7F` |
-| Vault PDA — devnet upgrade authority | `4JVEDPJpRMP9Uz4VQop9Y71Cf9QkonEAqmhXobDMx1hK` |
+| Vault PDA — devnet upgrade authority | `` |
 | Treasury | `HM5y4mz3Bt9JY9mr1hkyhnvqxSH4H2u2451j7Hc2dtvK` |
 | Creation transaction | `5RN2CfqpbmkdDDdeBAp9xuyp7pJcSAgbjzJxDsUyJU9BPfP6MiEyFFy7xmVWidwAYEpaVH3UszudbUJ8i4FNoi4V` |
 

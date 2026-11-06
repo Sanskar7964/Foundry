@@ -14,7 +14,7 @@ import fs from "node:fs";
 // execute the program upgrade.
 const RPC_URL = "https://api.devnet.solana.com";
 const MULTISIG_PDA = new PublicKey("C4WBJRjmLUJwUkFxD9CaBopspDpeFkeniRAK7Bt7ML7F");
-const VAULT_PDA = new PublicKey("4JVEDPJpRMP9Uz4VQop9Y71Cf9QkonEAqmhXobDMx1hK");
+const VAULT_PDA = new PublicKey("");
 const PROGRAM_ID = new PublicKey("HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn");
 const BPF_UPGRADEABLE_LOADER = new PublicKey("BPFLoaderUpgradeab1e11111111111111111111111");
 

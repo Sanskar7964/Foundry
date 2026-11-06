@@ -4,6 +4,10 @@ This is the remaining work before any mainnet spending. It applies to your
 **existing Devnet deployment and existing Devnet program IDs**. Do not create
 new IDs or repeat a test that has already passed on the current code.
 
+> Public-copy note: live Devnet program, multisig, vault, and authority
+> addresses are represented by placeholders. Keep the real values in a private
+> release record available only to authorized operators.
+
 ## Scope and rule
 
 - Use Devnet wallets, Devnet SOL, and the Devnet Squads Vault only.
@@ -34,9 +38,9 @@ use for the current application:
 
 | Program | Devnet program ID |
 |---|---|
-| Launchpad core | `HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn` |
-| Reward vault | `3xUJqsjCQBfvUhEvz5cd16SSAwLdQUFGijoh3X5pLYPZ` |
-| Merkle distributor | `GtpFjU1NZM8NvE2UYfNxszmTL2SW2xU6z4318by8rYC7` |
+| Launchpad core | `<DEVNET_LAUNCHPAD_PROGRAM_ID>` |
+| Reward vault | `<DEVNET_REWARD_VAULT_PROGRAM_ID>` |
+| Merkle distributor | `<DEVNET_MERKLE_DISTRIBUTOR_PROGRAM_ID>` |
 
 They now match `Anchor.toml`, the Rust `declare_id!` values, frontend IDLs,
 and `frontend/.env.local`.
@@ -49,7 +53,7 @@ or any existing coin balance. New launches save these fields automatically;
 the original creator of an older launch can add them from that coin's page.
 
 Do this once on Devnet when you are ready. It upgrades the existing launchpad
-program `HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn`; do not generate a
+program `<DEVNET_LAUNCHPAD_PROGRAM_ID>`; do not generate a
 program keypair and do not change an environment variable.
 
 1. In WSL, build the program:
@@ -61,8 +65,8 @@ program keypair and do not change an environment variable.
 
    **Do not run `anchor deploy`, `anchor keys sync`, or use
    `target/deploy/launchpad_core-keypair.json`.** That local keypair belongs
-   to the old, broken `DFB…` deployment and is not the live program. It is
-   not needed for a Squad-approved buffer upgrade.
+   to a historical, non-live deployment and is not needed for a
+   Squad-approved buffer upgrade.
 
    Check that the generated IDL identifies the correct live program:
 
@@ -71,7 +75,7 @@ program keypair and do not change an environment variable.
    ```
 
    Stop unless it prints
-   `HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn`.
+   `<DEVNET_LAUNCHPAD_PROGRAM_ID>`.
 
 2. **Do not copy that new IDL into the running frontend yet.** Until the
    Squad transaction is executed, the existing frontend must keep
@@ -81,11 +85,11 @@ program keypair and do not change an environment variable.
 3. Check the program authority. It must be the existing Devnet Vault PDA:
 
    ```bash
-   solana program show HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn --url devnet
+   solana program show <DEVNET_LAUNCHPAD_PROGRAM_ID> --url devnet
    ```
 
    Confirm that `Authority` is
-   `4JVEDPJpRMP9Uz4VQop9Y71Cf9QkonEAqmhXobDMx1hK`. If it is not, stop here.
+   `<DEVNET_VAULT_PDA>`. If it is not, stop here.
 
 4. Write an upgrade buffer only; this does not change the program yet:
 
@@ -98,7 +102,7 @@ program keypair and do not change an environment variable.
 
    ```bash
    solana program set-buffer-authority <BUFFER_ADDRESS> \
-     --new-buffer-authority 4JVEDPJpRMP9Uz4VQop9Y71Cf9QkonEAqmhXobDMx1hK \
+     --new-buffer-authority <DEVNET_VAULT_PDA> \
      --url devnet
    ```
 
@@ -106,7 +110,7 @@ program keypair and do not change an environment variable.
    bytes`, extend it from a Devnet-funded wallet before creating the proposal:
 
    ```bash
-   solana program extend HbYcvC9n5ZhE1LhVzpmRWLfBVg7oimsDaY7e2Rz8K2Mn <NUMBER> --url devnet
+   solana program extend <DEVNET_LAUNCHPAD_PROGRAM_ID> <NUMBER> --url devnet
    ```
 
    This changes allocation only; it does not change program code or authority.
@@ -117,7 +121,7 @@ program keypair and do not change an environment variable.
 
    ```bash
    npm run squad:propose-upgrade -- \
-     "$(wslpath -w /home/sansk/.config/solana/squad-members/member1.json)" \
+     "$(wslpath -w <PATH_TO_MEMBER1_KEYPAIR>)" \
      <BUFFER_ADDRESS>
    ```
 
@@ -126,14 +130,14 @@ program keypair and do not change an environment variable.
 
    ```bash
    npm run squad:approve-execute -- \
-     "$(wslpath -w /home/sansk/.config/solana/squad-members/member2.json)" \
+     "$(wslpath -w <PATH_TO_MEMBER2_KEYPAIR>)" \
      <NUMBER>
    ```
 
    Both scripts use only `https://api.devnet.solana.com`, the existing Devnet
-   multisig `C4WB…`, and its Vault `4JVED…`. They refuse to proceed if the
-   program or buffer authority is not that Vault. Save the execution signature
-   printed by the second command.
+   multisig `<DEVNET_SQUADS_MULTISIG>`, and its Vault `<DEVNET_VAULT_PDA>`.
+   They refuse to proceed if the program or buffer authority is not that Vault.
+   Save the execution signature printed by the second command.
 
 6. Only after that transaction succeeds, enable the matching frontend code:
 
@@ -296,7 +300,7 @@ After the functional tests pass:
 
 1. Add the deployed programs to the Devnet Squad.
 2. Transfer each upgrade authority to the **Devnet Vault PDA**
-   `4JVEDPJpRMP9Uz4VQop9Y71Cf9QkonEAqmhXobDMx1hK`, never the Multisig PDA.
+   `<DEVNET_VAULT_PDA>`, never the Multisig PDA.
 3. Propose, approve (2-of-3), and execute one harmless Devnet program upgrade.
 4. Verify the authority and final deployed bytecode on an explorer.
 

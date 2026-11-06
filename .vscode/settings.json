@@ -1,0 +1,8 @@
+{
+  // Prevent rust-analyzer from running cargo commands that regenerate
+  // Cargo.lock as version 4 (incompatible with Solana's bundled Cargo 1.75).
+  // We manage the lockfile manually via WSL: cargo generate-lockfile && sed.
+  "rust-analyzer.cargo.buildScripts.enable": false,
+  "rust-analyzer.checkOnSave": false,
+  "rust-analyzer.cargo.autoreload": false
+}
