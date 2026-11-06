@@ -8,3 +8,7 @@ target/
 .env.*
 !.env.example
 test-ledger/
+DEVNET_DEPLOY.md/
+DEVNET_RELEASE_RUNBOOK.md/
+FAST_MAINNET_DEPLOY.md/
+MAINNET_READINESS.md/
